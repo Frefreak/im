@@ -1,2 +1,5 @@
-gtk-query-immodules-3.0 ../fake/im-fake.so | tee immodules.cache
-GTK_IM_MODULE_FILE=./immodules.cache target/debug/playground
+#!/usr/bin/env bash
+
+# gtk-query-immodules-3.0 ../fake/im-fake.so | tee immodules.cache
+gtk-query-immodules-3.0 ../imrs/target/debug/libimrs.so | tee immodules.cache
+GTK_IM_MODULE_FILE=./immodules.cache GTK_IM_MODULE=imrs target/debug/playground
