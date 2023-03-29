@@ -1,16 +1,15 @@
 use std::ffi::CString;
 
 use gtk::{ffi::GtkIMContextInfo, glib::gobject_ffi::GTypeModule};
-use libc::system;
 use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 fn init_log() {
     let file_appender = tracing_appender::rolling::hourly("./log/", "irms.log");
-    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+    // let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
-        .with_writer(non_blocking)
+        .with_writer(file_appender)
         .init();
     debug!("init_log debug");
     info!("init_log info");
@@ -20,8 +19,6 @@ fn init_log() {
 
 #[no_mangle]
 pub unsafe extern "C" fn im_module_create(context_id: *const libc::c_char) {
-    let s = CString::new("echo sanity check1 > /tmp/asdf.log").unwrap();
-    system(s.as_ptr());
     init_log();
 }
 
@@ -50,10 +47,10 @@ pub unsafe extern "C" fn im_module_list(
 
 #[no_mangle]
 pub unsafe extern "C" fn im_module_init(module: *mut GTypeModule) {
-    let s = CString::new("echo sanity check2 > /tmp/asdf.log").unwrap();
-    system(s.as_ptr());
-    // init_log();
+    info!("init");
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn im_module_exit() {}
+pub unsafe extern "C" fn im_module_exit() {
+    info!("exit");
+}
