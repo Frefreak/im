@@ -1,17 +1,21 @@
-use std::{ffi::CString, ptr};
+use std::ffi::CString;
 
-use gtk::{ffi::GtkIMContextInfo, glib::gobject_ffi::{GTypeModule, G_TYPE_CHAR}};
-use libc::{system, c_void};
+use gtk::{ffi::GtkIMContextInfo, glib::gobject_ffi::GTypeModule};
+use libc::system;
 use tracing::{debug, error, info, warn};
+use tracing_subscriber::EnvFilter;
 
 fn init_log() {
-    let file_appender = tracing_appender::rolling::hourly("/tmp", "irms.log");
+    let file_appender = tracing_appender::rolling::hourly("./log/", "irms.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
-    tracing_subscriber::fmt().with_writer(non_blocking).init();
-    debug!("test debug");
-    info!("test info");
-    warn!("test warn");
-    error!("test error");
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .with_writer(non_blocking)
+        .init();
+    debug!("init_log debug");
+    info!("init_log info");
+    warn!("init_log warn");
+    error!("init_log error");
 }
 
 #[no_mangle]
@@ -26,15 +30,17 @@ pub unsafe extern "C" fn im_module_list(
     contexts: *mut *const *const GtkIMContextInfo,
     guint: *mut u32,
 ) {
-    let imrs = CString::new("imrs".as_bytes()).unwrap();
-    let locale = CString::new("/usr/share/locale".as_bytes()).unwrap();
-    println!("asdf {:?}", imrs.as_ptr());
+    let ctx_id = CString::new("imrs".as_bytes()).unwrap().into_raw();
+    let ctx_name = CString::new("IRMS".as_bytes()).unwrap().into_raw();
+    let domain = CString::new("gtk30".as_bytes()).unwrap().into_raw();
+    let domain_dirname = CString::new("/usr/share/locale".as_bytes()).unwrap().into_raw();
+    let locale = CString::new("zh".as_bytes()).unwrap().into_raw();
     let ctx_info = GtkIMContextInfo {
-        context_id: imrs.as_ptr(),
-        context_name: imrs.as_ptr(),
-        domain: imrs.as_ptr(),
-        domain_dirname: imrs.as_ptr(),
-        default_locales: locale.as_ptr(),
+        context_id: ctx_id,
+        context_name: ctx_name,
+        domain,
+        domain_dirname,
+        default_locales: locale,
     };
     let ptrs = vec![Box::into_raw(Box::new(ctx_info)) as *const GtkIMContextInfo];
     let ptr = Box::into_raw(ptrs.into_boxed_slice()) as *const *const GtkIMContextInfo;
@@ -46,7 +52,7 @@ pub unsafe extern "C" fn im_module_list(
 pub unsafe extern "C" fn im_module_init(module: *mut GTypeModule) {
     let s = CString::new("echo sanity check2 > /tmp/asdf.log").unwrap();
     system(s.as_ptr());
-    init_log();
+    // init_log();
 }
 
 #[no_mangle]

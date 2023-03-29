@@ -26,8 +26,6 @@ ptr = ctypes.cast(ptr, ctypes.POINTER(ctypes.POINTER(GtkIMContextInfo)))
 num = ctypes.c_uint(0)
 
 im_module_list(ctypes.pointer(ptr), ctypes.pointer(num))
-info = ptr.contents.contents
-
 num = num.value
 infos = ptr[:num]
 
